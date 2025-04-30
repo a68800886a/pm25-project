@@ -2,7 +2,8 @@ from flask import Flask, render_template, request
 from datetime import datetime
 import pandas as pd
 import pymysql
-from pm25 import get_pm25_data_from_mysql
+from pm25 import get_pm25_data_from_mysql, updata_db, get_cities_name
+import json
 
 app = Flask(__name__)
 
@@ -11,7 +12,10 @@ app = Flask(__name__)
 def index():
     columns, datas = get_pm25_data_from_mysql()
     # print(datas)
-    return render_template("index.html", datas=datas, columns=columns)
+    cities_name = get_cities_name()
+    return render_template(
+        "index.html", datas=datas, columns=columns, cities_name=cities_name
+    )
 
 
 @app.route("/pm25-data")
@@ -21,6 +25,16 @@ def getpm25_data():
     df["datacreationdate"] = pd.to_datetime(df["datacreationdate"])
     df1 = df.dropna()
     return df1.values.tolist()
+
+
+@app.route("/updata")
+def updata():
+    row_count, message = updata_db()
+    nowtime = datetime.now().strftime("%Y-%m-%d")
+    result = json.dumps(
+        {"時間": nowtime, "更新筆數": row_count, "結果": message}, ensure_ascii=False
+    )
+    return result
 
 
 @app.route("/books")

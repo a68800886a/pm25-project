@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>首頁</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
     <style>
         body {
             text-align: center;
@@ -20,10 +21,12 @@
 
 <body>
     <h1>細懸浮微粒資料(PM2.5)</h1>
+    <a class="btn-update" href="/updata">更新資料庫</a>
+    <h3>資料庫最後更新資間 : {{datas[1][4]}}</h3>
     <table border="1">
         <thead>
             <tr>
-                {%for column in columns%}
+                {%for column in columns[1:]%}
                 <th>
                     {{column}}
                 </th>
@@ -32,7 +35,7 @@
         <tbody>
             {%for data in datas%}
             <tr>
-                {%for row in data%}
+                {%for row in data[1:]%}
                 <td>
                     {{row}}
                 </td>
