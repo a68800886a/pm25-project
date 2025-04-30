@@ -68,12 +68,22 @@ def updata_db():
 
 
 def get_cities_name():
-    conn = open_db()
-    cur = conn.cursor()
-    sqlstr = "select distinct county from pm25;"
-    cur.execute(sqlstr)
-    datas = cur.fetchall()
-    cities_name = [data[0] for data in datas]
+    conn = None
+    datas = None
+    try:
+        conn = open_db()
+        cur = conn.cursor()
+        # 改成只要最新的?
+        sqlstr = "select distinct county from pm25;"
+        cur.execute(sqlstr)
+        datas = cur.fetchall()
+        cities_name = [data[0] for data in datas]
+    except Exception as e:
+        print(e)
+        message = f"更新資料庫失敗"
+    finally:
+        if conn is not None:
+            conn.close()
     # print(cities_name)
     return cities_name
 

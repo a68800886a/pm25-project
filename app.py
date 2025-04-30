@@ -10,11 +10,38 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
+    """
+    # 取出不同縣市
+    df = pd.DataFrame(datas, columns=columns)
+    counties = df["count"].unique().tolist()
+    """
+    cities_name = get_cities_name()
+    # 選取縣市後的資料(預設ALL)
+    county = request.args.get("county", "ALL")
+
     columns, datas = get_pm25_data_from_mysql()
     # print(datas)
-    cities_name = get_cities_name()
+    df = pd.DataFrame(datas, columns=columns)
+    x_site = df["site"].to_list()
+    y_pm25 = df["pm25"].to_list()
+    if county != "ALL":
+        # 取得特定城市資料
+        df1 = df.groupby("county").get_group(county)
+        # print(df1)
+        columns = df1.columns.tolist()
+        datas = df1.values.tolist()
+        # print(datas)
+        x_site = df["site"].to_list()
+        y_pm25 = df["pm25"].to_list()
+
     return render_template(
-        "index.html", datas=datas, columns=columns, cities_name=cities_name
+        "index.html",
+        datas=datas,
+        columns=columns,
+        cities_name=cities_name,
+        selected_county=county,
+        x_site=x_site,
+        y_pm25=y_pm25,
     )
 
 
