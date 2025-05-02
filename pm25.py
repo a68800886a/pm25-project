@@ -16,12 +16,34 @@ def open_db():
 def get_pm25_data_from_mysql():
     conn = None
     datas = None
+    columns = None
     try:
         conn = open_db()
         cur = conn.cursor()
         # sqlstr="select MAX(datacreationdate) from pm25;"
         sqlstr = "select * from pm25 where datacreationdate=(select MAX(datacreationdate) from pm25);"
         cur.execute(sqlstr)
+        # print(cur.description)
+        columns = [columnsin[0] for columnsin in cur.description]
+        datas = cur.fetchall()
+    except Exception as e:
+        print(e)
+    finally:
+        if conn is not None:
+            conn.close()
+    return columns, datas
+
+
+# 取得對應縣市的site資料
+def get_data_by_site(county, site):
+    conn = None
+    datas = None
+    columns = None
+    try:
+        conn = open_db()
+        cur = conn.cursor()
+        sqlstr = "select * from pm25 where county=%s and site=%s;"
+        cur.execute(sqlstr, (county, site))
         # print(cur.description)
         columns = [columnsin[0] for columnsin in cur.description]
         datas = cur.fetchall()
@@ -80,7 +102,7 @@ def get_cities_name():
         cities_name = [data[0] for data in datas]
     except Exception as e:
         print(e)
-        message = f"更新資料庫失敗"
+        message = f"資料庫失敗"
     finally:
         if conn is not None:
             conn.close()
@@ -88,11 +110,27 @@ def get_cities_name():
     return cities_name
 
 
+def get_sites(city):
+    conn = None
+    datas = None
+    try:
+        conn = open_db()
+        cur = conn.cursor()
+        # 改成只要最新的?
+        sqlstr = "select distinct site from pm25 where county=%s;"
+        cur.execute(sqlstr, (city,))
+        datas = cur.fetchall()
+        sites = [data[0] for data in datas]
+    except Exception as e:
+        print(e)
+        message = f"資料庫失敗"
+    finally:
+        if conn is not None:
+            conn.close()
+    # print(cities_name)
+    return sites
+
+
 if __name__ == "__main__":
-    get_cities_name()
-    """
-    conn = open_db()
-    print(conn)
-    columns, datas = get_pm25_data_from_mysql()
-    print(columns)
-    """
+    columns, datas = get_data_by_site("新北市", "富貴角")
+    print(get_sites("新北市"))

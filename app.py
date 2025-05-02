@@ -2,10 +2,54 @@ from flask import Flask, render_template, request
 from datetime import datetime
 import pandas as pd
 import pymysql
-from pm25 import get_pm25_data_from_mysql, updata_db, get_cities_name
+from pm25 import (
+    get_pm25_data_from_mysql,
+    updata_db,
+    get_cities_name,
+    get_data_by_site,
+    get_sites,
+)
 import json
 
 app = Flask(__name__)
+
+
+@app.route("/pm25-county-site")
+def pm25_county_site():
+    county = request.args.get("county")
+    sites = get_sites(county)
+    result = json.dump(sites, ensure_ascii=False)
+    return result
+
+
+@app.route("/pm25-site")
+def pm25_site():
+    cities_name = get_cities_name()
+    return render_template("pm25-site.html", counties=cities_name)
+
+
+@app.route("/pm25-data-site")
+def pm25_data_by_site():
+    county = request.args.get("county")
+    site = request.args.get("site")
+
+    if not county or not site:
+        result = json.dump({"error": "縣市跟站點名稱不可為空!"}, ensure_ascii=False)
+    else:
+        columns, datas = get_data_by_site(county, site)
+        df = pd.DataFrame(
+            datas,
+            columns=columns,
+        )
+        data = df["datacreationdate"].apply(lambda x: x.strftime("%Y-%m-%d %H"))
+
+        result = {
+            "county": county,
+            "site": site,
+            "x_data": data.to_list(),
+            "y_data": df["county"].to_list(),
+        }
+    return result
 
 
 @app.route("/")
