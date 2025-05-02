@@ -5,101 +5,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>首頁</title>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
-    <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
-    <style>
-        body {
-            text-align: center;
-            background-color: antiquewhite;
-        }
 
-        table {
-            width: 80%;
-            margin: 0 auto;
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}">
+
 </head>
 
 <body>
-    <h1>細懸浮微粒資料(PM2.5)</h1>
-    <a class="btn-update" href="/updata">更新資料庫</a>
-    <h3>資料庫最後更新資間 : {{datas[0][4]}}</h3>
+    <h1>細懸浮微粒資料（PM2.5）</h1>
+    <h3>最新更新時間:{{datas[0][4]}}</h3>
 
     <div id="main" style="width: 600px;height:400px;"></div>
 
+
+
+    <a class="btn-update" href="/update-db">更新資料庫</a>
+
     <form action="/" method="GET">
         <label for="county">選取縣市</label>
-        <!--縣市選擇-->
+        <!-- 縣市選擇框 -->
         <select name="county" id="county">
             <option value="ALL">全部縣市</option>
-            {%for county in cities_name%}
+            {% for county in counties %}
             <option value="{{county}}" {% if selected_county==county %} selected {% endif %}>{{county}}</option>
             {% endfor %}
         </select>
         <button type="submit">查詢</button>
     </form>
+    {{x_data}}
+    {{y_data}}
+    <div id="chart-data" data-labels='{{ x_data | tojson }}'' data-values=' {{ y_data | tojson }}''></div>
 
-    <h2>選擇縣市 : {{selected_county}}</h2>
-
+    <h2 style="text-align: left;margin-left: 64px;color:rgb(54, 95, 6)">選擇縣市：{{selected_county}}</h2>
     <table border="1">
         <thead>
             <tr>
-                {%for column in columns[1:]%}
-                <th>
-                    {{column}}
-                </th>
-                {%endfor%}
+                {% for col in columns[1:] %}
+                <th>{{col}}</th>
+                {% endfor %}
             </tr>
-        <tbody>
-            {%for data in datas%}
-            <tr>
-                {%for row in data[1:]%}
-                <td>
-                    {{row}}
-                </td>
-                {%endfor%}
-            </tr>
-            {%endfor%}
-        </tbody>
         </thead>
+        <tbody>
+            {% for row in datas %}
+            <tr>
+                {% for data in row[1:] %}
+                <td>{{data}}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
 
-    <div id="chart-data" data-label="{{x_site|tojson}}" data-valuse="{{y_pm25|tojson}}"></div>
+    <script type="text/javascript">
 
-    <script type="text/Javascript">
-        const chartData=document.querySelector("#chart-data");
-        const lables=JSON.parse.chartData.dataset.label;
-        const valuse=chartData.dataset.valuse;
+        const chartData = document.querySelector("#chart-data");
+        const labels = JSON.parse(chartData.dataset.labels);
+        const values = JSON.parse(chartData.dataset.values);
 
-        console.log(chartData,lables,valuse);
+        console.log(chartData, labels, values);
 
-        // 基于准备好的dom，初始化echarts实例
-      var myChart = echarts.init(document.getElementById('main'));
 
-// 指定图表的配置项和数据
-var option = {
-  title: {
-    text: 'ECharts 入门示例'
-  },
-  tooltip: {},
-  legend: {
-    data: ['销量']
-  },
-  xAxis: {
-    data: label
-  },
-  yAxis: {},
-  series: [
-    {
-      name: '销量',
-      type: 'bar',
-      data: valuse
-    }
-  ]
-};
 
-// 使用刚指定的配置项和数据显示图表。
-myChart.setOption(option);
+        var myChart = echarts.init(document.getElementById('main'));
+        var option = {
+            title: {
+                text: 'PM2.5數據柱狀圖'
+            },
+            tooltip: {},
+            legend: {
+                data: ['PM25']
+            },
+            xAxis: {
+                data: labels
+            },
+            datazoom: [{
+                type: "slider",
+                start: 0,
+                end: 108
+            }],
+            yAxis: {},
+            series: [
+                {
+                    name: 'PM25',
+                    type: 'bar',
+                    data: values
+                }
+            ]
+        };
+
+        // 使用刚指定的配置项和数据显示图表。
+        myChart.setOption(option);
     </script>
 </body>
 

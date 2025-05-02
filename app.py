@@ -10,38 +10,40 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    """
-    # 取出不同縣市
+    # 取得資料庫最新資料
+    columns, datas = get_pm25_data_from_mysql()
+    # 取出不同縣市給select
     df = pd.DataFrame(datas, columns=columns)
-    counties = df["count"].unique().tolist()
-    """
-    cities_name = get_cities_name()
+    # 排序縣市
+    counties = sorted(df["county"].unique().tolist())
+
     # 選取縣市後的資料(預設ALL)
     county = request.args.get("county", "ALL")
 
-    columns, datas = get_pm25_data_from_mysql()
-    # print(datas)
-    df = pd.DataFrame(datas, columns=columns)
-    x_site = df["site"].to_list()
-    y_pm25 = df["pm25"].to_list()
-    if county != "ALL":
-        # 取得特定城市資料
-        df1 = df.groupby("county").get_group(county)
-        # print(df1)
-        columns = df1.columns.tolist()
-        datas = df1.values.tolist()
-        # print(datas)
-        x_site = df["site"].to_list()
-        y_pm25 = df["pm25"].to_list()
+    if county == "ALL":
+        df1 = df.groupby("county")["pm25"].mean().reset_index()
+        # 繪製所需資料
+        x_data = df1["county"].to_list()
+
+    else:
+        # 取得特定縣市的資料
+        df = df.groupby("county").get_group(county)
+        # 繪製所需資料
+        x_data = df["site"].to_list()
+
+    columns = df.columns.tolist()
+    datas = df.values.tolist()
+    # 繪製所需資料
+    y_data = df["pm25"].to_list()
 
     return render_template(
         "index.html",
-        datas=datas,
         columns=columns,
-        cities_name=cities_name,
+        datas=datas,
+        counties=counties,
         selected_county=county,
-        x_site=x_site,
-        y_pm25=y_pm25,
+        x_data=x_data,
+        y_data=y_data,
     )
 
 
