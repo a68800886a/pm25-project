@@ -24,7 +24,7 @@
 
 
 
-    <a class="btn-update" href="/update-db">更新資料庫</a>
+    <a class="btn-update" href="/updata">更新資料庫</a>
 
     <form action="/" method="GET">
         <label for="county">選取縣市</label>
@@ -37,8 +37,6 @@
         </select>
         <button type="submit">查詢</button>
     </form>
-    {{x_data}}
-    {{y_data}}
     <div id="chart-data" data-labels='{{ x_data | tojson }}'' data-values=' {{ y_data | tojson }}''></div>
 
     <h2 style="text-align: left;margin-left: 64px;color:rgb(54, 95, 6)">選擇縣市：{{selected_county}}</h2>

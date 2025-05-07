@@ -18,7 +18,7 @@ app = Flask(__name__)
 def pm25_county_site():
     county = request.args.get("county")
     sites = get_sites(county)
-    result = json.dump(sites, ensure_ascii=False)
+    result = json.dumps(sites, ensure_ascii=False)
     return result
 
 
@@ -34,21 +34,23 @@ def pm25_data_by_site():
     site = request.args.get("site")
 
     if not county or not site:
-        result = json.dump({"error": "縣市跟站點名稱不可為空!"}, ensure_ascii=False)
+        result = json.dumps({"error": "縣市跟站點名稱不能為空!"}, ensure_ascii=False)
     else:
         columns, datas = get_data_by_site(county, site)
-        df = pd.DataFrame(
-            datas,
-            columns=columns,
-        )
-        data = df["datacreationdate"].apply(lambda x: x.strftime("%Y-%m-%d %H"))
-
-        result = {
+        df = pd.DataFrame(datas, columns=columns)
+        # 轉換字串時間格式
+        date = df["datacreationdate"].apply(lambda x: x.strftime("%Y-%m-%d %H"))
+        data = {
             "county": county,
             "site": site,
-            "x_data": data.to_list(),
-            "y_data": df["county"].to_list(),
+            "x_data": date.to_list(),
+            "y_data": df["pm25"].to_list(),
+            "higher": df["pm25"].max(),
+            "higher": df["pm25"].min(),
         }
+
+        result = json.dumps(data, ensure_ascii=False)
+
     return result
 
 
